@@ -3,28 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>飲料決定器</title>
+    <title>晴空飲料轉盤</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700;900&display=swap');
+
         body {
-            background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
-            color: #333;
-            font-family: 'Noto Sans TC', sans-serif;
+            /* 藍天漸層背景 */
+            background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%);
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            margin: 0;
+            font-family: 'Noto Sans TC', sans-serif;
             overflow: hidden;
+            position: relative;
         }
+
+        /* 太陽 */
+        .sun {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #fff700 0%, #ff8800 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px #fff700;
+            z-index: 0;
+        }
+
+        /* 白雲動畫 */
+        .cloud {
+            position: absolute;
+            background: #fff;
+            border-radius: 50px;
+            opacity: 0.8;
+            z-index: 0;
+            animation: float linear infinite;
+        }
+        .cloud::after, .cloud::before {
+            content: '';
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+        }
+        .cloud1 { width: 120px; height: 40px; top: 15%; animation-duration: 25s; }
+        .cloud2 { width: 100px; height: 35px; top: 30%; animation-duration: 35s; animation-delay: -10s; }
+        
+        @keyframes float {
+            from { left: -150px; }
+            to { left: 100vw; }
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #fff;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            z-index: 2;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 30px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            margin-bottom: 20px;
+        }
+
         .wheel-container {
             position: relative;
             width: 90vw;
             height: 90vw;
             max-width: 420px;
             max-height: 420px;
+            z-index: 2;
         }
+
         canvas {
             width: 100%;
             height: 100%;
@@ -33,6 +86,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1);
         }
+
         .pointer {
             position: absolute;
             top: -25px;
@@ -40,10 +94,10 @@
             transform: translateX(-50%);
             width: 20px;
             height: 65px;
-            background: repeating-linear-gradient(45deg, #ff6b6b, #ff6b6b 8px, #fff 8px, #fff 16px);
+            background: #fff;
             z-index: 10;
             border-radius: 4px;
-            border: 3px solid #fff;
+            border: 3px solid #4facfe;
         }
         .pointer::after {
             content: '';
@@ -53,29 +107,39 @@
             transform: translateX(-50%);
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-top: 20px solid #ff6b6b;
+            border-top: 20px solid #4facfe;
         }
+
         .spin-btn {
             margin-top: 40px;
-            padding: 15px 60px;
+            padding: 15px 70px;
             font-size: 1.8rem;
             font-weight: 900;
             background: #fff;
-            color: #0056b3;
+            color: #4facfe;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            z-index: 2;
             transition: 0.1s;
         }
         .spin-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
+
+    <div class="sun"></div>
+    <div class="cloud cloud1" style="top: 15%;"></div>
+    <div class="cloud cloud2" style="top: 45%;"></div>
+
+    <h1>☀️ 晴空飲料選</h1>
+
     <div class="wheel-container">
         <div class="pointer"></div>
         <canvas id="wheel" width="800" height="800"></canvas>
     </div>
+
     <button class="spin-btn" onclick="spin()">START!</button>
 
     <script>
@@ -129,7 +193,9 @@
         function spin() {
             if (isSpinning) return;
             isSpinning = true;
-            currentAngle += 3600 + Math.floor(Math.random() * 3600);
+            // 每次旋轉確保加上至少 10 圈的角度，維持隨機與公平
+            const addAngle = 3600 + Math.floor(Math.random() * 7200);
+            currentAngle += addAngle;
             canvas.style.transform = `rotate(${currentAngle}deg)`;
             setTimeout(() => { isSpinning = false; }, 5000);
         }
