@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>清涼飲料轉盤</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700;900&display=swap');
+
+        body {
+            /* 純淨藍天背景 */
+            background: linear-gradient(180deg, #89f7fe 0%, #66a6ff 100%);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 氣泡動畫容器 */
+        .bubbles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 氣泡樣式 */
+        .bubble {
+            position: absolute;
+            bottom: -50px;
+            /* 半透明白色圓形，看起來像氣泡 */
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            /* 加上一點邊框讓氣泡更立體 */
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: rise infinite ease-in;
+        }
+
+        /* 調整氣泡的大小、位置和上升速度 */
+        .bubble:nth-child(1) { width: 40px; height: 40px; left: 10%; animation-duration: 8s; }
+        .bubble:nth-child(2) { width: 20px; height: 20px; left: 25%; animation-duration: 5s; animation-delay: 1s; }
+        .bubble:nth-child(3) { width: 50px; height: 50px; left: 40%; animation-duration: 7s; animation-delay: 2s; }
+        .bubble:nth-child(4) { width: 30px; height: 30px; left: 60%; animation-duration: 6s; animation-delay: 0.5s; }
+        .bubble:nth-child(5) { width: 45px; height: 45px; left: 80%; animation-duration: 9s; animation-delay: 1.5s; }
+        
+        /* 氣泡上升動畫 */
+        @keyframes rise {
+            0% { bottom: -50px; transform: translateX(0) scale(1); }
+            50% { transform: translateX(20px) scale(1.1); }
+            100% { bottom: 110vh; transform: translateX(-20px) scale(1.2); }
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #0056b3;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+            z-index: 2;
+            background: rgba(255,255,255,0.6);
+            padding: 8px 30px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 86, 179, 0.1);
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 90vw;
+            height: 90vw;
+            max-width: 420px;
+            max-height: 420px;
+            z-index: 2;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #fff;
+            box-shadow: 0 15px 35px rgba(0, 86, 179, 0.2);
+            transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 65px;
+            background: #fff;
+            z-index: 10;
+            border-radius: 4px;
+            border: 3px solid #0056b3;
+        }
+        .pointer::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 20px solid #0056b3;
+        }
+
+        .spin-btn {
+            margin-top: 40px;
+            padding: 15px 70px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: #fff;
+            color: #0056b3;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 86, 179, 0.2);
+            z-index: 2;
+            transition: 0.1s;
+        }
+        .spin-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="bubbles">
+        <div class="bubble"></div><div class="bubble"></div>
+        <div class="bubble"></div><div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+
+    <h1>💧 清涼飲料轉盤</h1>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="800" height="800"></canvas>
+    </div>
+
+    <button class="spin-btn" onclick="spin()">START!</button>
+
+    <script>
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const brands = [
+            { name: "麻古", bg: "#e60012", text: "#fff" }, { name: "得正", bg: "#0056b3", text: "#fff" },
+            { name: "大茗", bg: "#4a6b3a", text: "#fff" }, { name: "一沐日", bg: "#2e7d32", text: "#fff" },
+            { name: "一沐日", bg: "#2e7d32", text: "#fff" }, { name: "再睡5分", bg: "#d7ccc8", text: "#5d4037" },
+            { name: "五十嵐", bg: "#ffeb3b", text: "#0044cc" }, { name: "萬波", bg: "#8d6e63", text: "#fff" },
+            { name: "五桐號", bg: "#ffecb3", text: "#bf360c" }, { name: "珍煮丹", bg: "#212121", text: "#d4af37" },
+            { name: "清心", bg: "#009688", text: "#fff" }, { name: "龜記", bg: "#ff5722", text: "#fff" },
+            { name: "迷客夏", bg: "#81c784", text: "#1b5e20" }, { name: "茶聚", bg: "#546e7a", text: "#fff" },
+            { name: "可不可", bg: "#1a237e", text: "#d4af37" }, { name: "Comebuy", bg: "#d32f2f", text: "#fff" }
+        ];
+
+        let currentAngle = 0;
+        let isSpinning = false;
+
+        function draw() {
+            const centerX = 400; const centerY = 400; const radius = 400;
+            const slice = (Math.PI * 2) / brands.length;
+            brands.forEach((brand, i) => {
+                const angle = i * slice;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, angle + slice);
+                ctx.fillStyle = brand.bg;
+                ctx.fill();
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angle + slice / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = brand.text;
+                ctx.font = "bold 38px Microsoft JhengHei";
+                ctx.fillText(brand.name, radius - 40, 15);
+                ctx.restore();
+            });
+            ctx.beginPath(); ctx.arc(400, 400, 50, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+        }
+
+        function spin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            // 維持大範圍隨機角度，確保公平性
+            const addAngle = 3600 + Math.floor(Math.random() * 7200);
+            currentAngle += addAngle;
+            canvas.style.transform = `rotate(${currentAngle}deg)`;
+            setTimeout(() => { isSpinning = false; }, 5000);
+        }
+        draw();
+    </script>
+</body>
+</html>
